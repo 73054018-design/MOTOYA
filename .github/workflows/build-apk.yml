@@ -1,0 +1,43 @@
+name: MOTOYA APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - principal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar proyecto MOTOYA
+        run: |
+          unzip -o MOTOYA_CLOUD_ANDROID.zip -d /tmp/motoya
+          mkdir -p build_project
+          cp -r /tmp/motoya/MOTOYA_ANDROID_STUDIO_READY/. build_project/
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Crear proyecto Android
+        working-directory: build_project/app
+        run: |
+          flutter create .
+          flutter pub get
+
+      - name: Compilar APK
+        working-directory: build_project/app
+        run: |
+          flutter build apk --release
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MOTOYA-APK
+          path: build_project/app/build/app/outputs/flutter-apk/app-release.apk
